@@ -1,35 +1,64 @@
+
+<!-- Simplified, styled Studio3121 curtain quote tool -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Custom Sheer Curtain Quote</title>
   <style>
-    #curtain-quote-tool {
-      max-width: 500px;
-      font-family: sans-serif;
+    body {
+      background-color: #f8f6f3;
+      font-family: 'Helvetica Neue', sans-serif;
+      color: #2a2a2a;
+      padding: 40px 20px;
+    }
+    #curtain-quote-tool, #order-list {
+      max-width: 700px;
+      margin: 0 auto 40px;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      padding: 30px;
+    }
+    h2, h3 {
+      font-weight: 300;
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    label {
+      font-weight: 500;
+      margin-top: 10px;
+    }
+    input, select {
       border: 1px solid #ccc;
-      padding: 20px;
-      border-radius: 10px;
-    }
-    #curtain-quote-tool label, #curtain-quote-tool input, #curtain-quote-tool select {
-      display: block;
+      border-radius: 6px;
+      padding: 10px;
+      margin-bottom: 20px;
       width: 100%;
-      margin-bottom: 10px;
-    }
-    #curtain-quote-tool button {
-      padding: 10px 15px;
       font-size: 16px;
-      background-color: #000;
-      color: #fff;
+    }
+    button {
+      background-color: #1a1a1a;
+      color: white;
+      padding: 12px 20px;
+      font-size: 16px;
       border: none;
+      border-radius: 6px;
       cursor: pointer;
-      border-radius: 5px;
+      margin: 10px 5px 0 0;
+    }
+    button:hover {
+      background-color: #000000;
+    }
+    ul {
+      padding-left: 20px;
+      list-style-type: disc;
     }
   </style>
 </head>
 <body>
-<!-- Curtain Quote Tool with Dynamic Colour Dropdown -->
+
 <div id="curtain-quote-tool">
   <h2>Custom Sheer Curtain Quote</h2>
 
@@ -63,7 +92,17 @@
 
   <p><strong>Quote: </strong><span id="quote">$0</span></p>
 
-  <button onclick="redirectToCart()">Add to Cart</button>
+  <button onclick="addToOrderList()">Add Curtain</button>
+</div>
+
+<hr>
+
+<div id="order-list">
+  <h3>Your Curtains</h3>
+  <ul id="order-items"></ul>
+  <p><strong>Total: </strong><span id="order-total">$0</span></p>
+  <button onclick="checkoutOrder()">Checkout Now</button>
+  <button onclick="downloadQuote()">Download Quote & Request Consultation</button>
 </div>
 
 <script>
@@ -74,6 +113,8 @@ const fabricColours = {
   "Coast Sheer": ["Snow", "Off White", "Silver", "Linen", "Warm Grey"],
   "Tessa": ["Alabaster", "Beige", "Berber", "Smoke", "Ink"]
 };
+
+let orderItems = [];
 
 function updateColours() {
   const fabric = document.getElementById("fabric").value;
@@ -102,7 +143,7 @@ function updateQuote() {
   document.getElementById("quote").innerText = `$${quote}`;
 }
 
-function redirectToCart() {
+function addToOrderList() {
   const fabric = document.getElementById("fabric").value;
   const colour = document.getElementById("colour").value;
   const room = document.getElementById("room").value;
@@ -111,15 +152,82 @@ function redirectToCart() {
   const heading = document.getElementById("heading").value;
   const quote = calculatePrice(width);
 
-  const notes = encodeURIComponent(`Room: ${room}
-Fabric: ${fabric}
-Colour: ${colour}
-Width: ${width} mm
-Drop: ${drop} mm
-Heading: ${heading}
-Quote: $${quote}`);
+  const item = {
+    fabric,
+    colour,
+    room,
+    width,
+    drop,
+    heading,
+    quote
+  };
+  orderItems.push(item);
+  updateOrderDisplay();
+  clearForm();
+}
 
+function updateOrderDisplay() {
+  const list = document.getElementById("order-items");
+  list.innerHTML = "";
+  let total = 0;
+  orderItems.forEach((item, index) => {
+    const li = document.createElement("li");
+    li.textContent = `${item.room} - ${item.fabric} (${item.colour}) - ${item.width}mm x ${item.drop}mm - ${item.heading} - $${item.quote}`;
+    list.appendChild(li);
+    total += item.quote;
+  });
+  document.getElementById("order-total").innerText = `$${total}`;
+}
+
+function clearForm() {
+  document.getElementById("room").value = "";
+  document.getElementById("width").value = "";
+  document.getElementById("drop").value = "";
+  document.getElementById("heading").value = "Wave";
+  updateQuote();
+}
+
+function checkoutOrder() {
+  const orderSummary = orderItems.map(item =>
+    `Room: ${item.room}
+Fabric: ${item.fabric}
+Colour: ${item.colour}
+Width: ${item.width} mm
+Drop: ${item.drop} mm
+Heading: ${item.heading}
+Quote: $${item.quote}`
+  ).join("
+---
+");
+  const notes = encodeURIComponent(orderSummary);
   window.location.href = `/cart?note=${notes}`;
+}
+
+function downloadQuote() {
+  const orderSummary = orderItems.map((item, i) =>
+    `Curtain ${i + 1}
+Room: ${item.room}
+Fabric: ${item.fabric}
+Colour: ${item.colour}
+Width: ${item.width} mm
+Drop: ${item.drop} mm
+Heading: ${item.heading}
+Quote: $${item.quote}`
+  ).join("
+
+---
+
+");
+
+  const blob = new Blob(["Custom Curtain Quote Summary
+
+" + orderSummary], { type: 'text/plain' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = "curtain-quote.txt";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 window.onload = function () {
@@ -127,5 +235,6 @@ window.onload = function () {
   document.getElementById("width").addEventListener("input", updateQuote);
 };
 </script>
+
 </body>
 </html>
