@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Custom Sheer Curtain Quote</title>
+  <style>
+    #curtain-quote-tool {
+      max-width: 500px;
+      font-family: sans-serif;
+      border: 1px solid #ccc;
+      padding: 20px;
+      border-radius: 10px;
+    }
+    #curtain-quote-tool label, #curtain-quote-tool input, #curtain-quote-tool select {
+      display: block;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    #curtain-quote-tool button {
+      padding: 10px 15px;
+      font-size: 16px;
+      background-color: #000;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+<!-- Curtain Quote Tool with Dynamic Colour Dropdown -->
+<div id="curtain-quote-tool">
+  <h2>Custom Sheer Curtain Quote</h2>
+
+  <label for="fabric">Select Fabric:</label>
+  <select id="fabric" onchange="updateColours()">
+    <option value="Barcelona">Barcelona</option>
+    <option value="Whitsundays">Whitsundays</option>
+    <option value="Organic">Organic</option>
+    <option value="Coast Sheer">Coast Sheer</option>
+    <option value="Tessa">Tessa</option>
+  </select>
+
+  <label for="colour">Select Colour:</label>
+  <select id="colour"></select>
+
+  <label for="room">Room Name:</label>
+  <input type="text" id="room" placeholder="e.g., Living Room" />
+
+  <label for="width">Width (mm):</label>
+  <input type="number" id="width" min="1" max="3000" />
+
+  <label for="drop">Drop (mm):</label>
+  <input type="number" id="drop" min="1" max="3000" />
+
+  <label for="heading">Heading Style:</label>
+  <select id="heading">
+    <option value="Wave">Wave</option>
+    <option value="Pinch Pleat">Pinch Pleat</option>
+    <option value="Pencil Pleat">Pencil Pleat</option>
+  </select>
+
+  <p><strong>Quote: </strong><span id="quote">$0</span></p>
+
+  <button onclick="redirectToCart()">Add to Cart</button>
+</div>
+
+<script>
+const fabricColours = {
+  "Barcelona": ["Alabaster", "Bronz", "Platinum"],
+  "Whitsundays": ["White Wash", "Marble", "Clay", "Silver Gum", "Jet"],
+  "Organic": ["Ivory", "Linen", "Duckegg", "Mist", "Blackbean"],
+  "Coast Sheer": ["Snow", "Off White", "Silver", "Linen", "Warm Grey"],
+  "Tessa": ["Alabaster", "Beige", "Berber", "Smoke", "Ink"]
+};
+
+function updateColours() {
+  const fabric = document.getElementById("fabric").value;
+  const colourDropdown = document.getElementById("colour");
+  colourDropdown.innerHTML = "";
+  fabricColours[fabric].forEach(colour => {
+    const option = document.createElement("option");
+    option.value = colour;
+    option.text = colour;
+    colourDropdown.appendChild(option);
+  });
+}
+
+function calculatePrice(width) {
+  if (width <= 1000) return 350;
+  if (width <= 1500) return 500;
+  if (width <= 2000) return 650;
+  if (width <= 2500) return 800;
+  if (width <= 3000) return 950;
+  return 0;
+}
+
+function updateQuote() {
+  const width = parseInt(document.getElementById("width").value);
+  const quote = calculatePrice(width);
+  document.getElementById("quote").innerText = `$${quote}`;
+}
+
+function redirectToCart() {
+  const fabric = document.getElementById("fabric").value;
+  const colour = document.getElementById("colour").value;
+  const room = document.getElementById("room").value;
+  const width = document.getElementById("width").value;
+  const drop = document.getElementById("drop").value;
+  const heading = document.getElementById("heading").value;
+  const quote = calculatePrice(width);
+
+  const notes = encodeURIComponent(`Room: ${room}
+Fabric: ${fabric}
+Colour: ${colour}
+Width: ${width} mm
+Drop: ${drop} mm
+Heading: ${heading}
+Quote: $${quote}`);
+
+  window.location.href = `/cart?note=${notes}`;
+}
+
+window.onload = function () {
+  updateColours();
+  document.getElementById("width").addEventListener("input", updateQuote);
+};
+</script>
+</body>
+</html>
